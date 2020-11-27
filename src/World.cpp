@@ -23,6 +23,7 @@ typedef pair<ArbiterKey, Arbiter> ArbPair;
 bool World::accumulateImpulses = true;
 bool World::warmStarting = true;
 bool World::positionCorrection = true;
+bool World::Moter = true;
 
 void World::Add(Body* body)
 {
@@ -93,8 +94,11 @@ void World::Step(float dt)
 		if (b->invMass == 0.0f)
 			continue;
 
-		b->velocity += dt * (gravity + b->invMass * b->force);
-		b->angularVelocity += dt * b->invI * b->torque;
+		if (b->force.x <= 100.0f && b->force.y <= 100.0f)
+		{
+			b->velocity += dt * (gravity + b->invMass * b->force);
+			b->angularVelocity += dt * b->invI * b->torque;
+		}
 	}
 
 	// Perform pre-steps.
