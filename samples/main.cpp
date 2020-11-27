@@ -32,6 +32,8 @@ namespace
 	Joint joints[100];
 	
 	Body* bomb = NULL;
+	Body* moter = NULL;				//모터 Body
+	static bool moterOper = false;	//모터 회전관련 bool
 
 	float timeStep = 1.0f / 60.0f;
 	int iterations = 10;
@@ -48,10 +50,6 @@ namespace
 	float pan_y = 8.0f;
 
 	World world(gravity, iterations);
-	
-	//상태 저장 변수 추가
-	// (일시정지)
-	bool flag = false;
 }
 
 static void glfwErrorCallback(int error, const char* description)
@@ -132,6 +130,34 @@ static void LaunchBomb()
 	bomb->rotation = Random(-1.5f, 1.5f);
 	bomb->velocity = -1.5f * bomb->position;
 	bomb->angularVelocity = Random(-20.0f, 20.0f);
+}
+
+//모터 생성 LaunchBomb()의 형식을 가져옴.
+//입력 파라미터는 회전을 시킬지 말지를 결정하게 함.
+static void const Moter(bool oper)
+{
+	if (!moter)
+	{
+		moter = bodies + numBodies;
+		moter->Set(Vec2(1.0f, 1.0f), FLT_MAX);
+		moter->friction = 100.0f;
+		world.Add(moter);
+		++numBodies;
+	}
+	moter->position.Set((1.0f, 1.0f), 3.0f);
+
+	if (oper == false)
+	{
+		moter->angularVelocity = 0.0f;
+		World::Moter = false;
+	}
+	else
+	{
+		moter->angularVelocity = 100.0f;
+		World::Moter = true;
+	}
+
+	float rotation = (moter->mass * moter->angularVelocity) * (1/timeStep);
 }
 
 // Single box
@@ -517,6 +543,7 @@ static void InitDemo(int index)
 	numBodies = 0;
 	numJoints = 0;
 	bomb = NULL;
+	moter = NULL;		//Demo 변경 시 같이 초기화
 
 	demoIndex = index;
 	demos[index](bodies, joints);
@@ -563,15 +590,10 @@ static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int 
 	case GLFW_KEY_SPACE:
 		LaunchBomb();
 		break;
-	
-	// 일시정지 기능 추가 (s키를 누를 시)
-	case GLFW_KEY_S:
-		flag = !flag;
-		break;
 
-	// 빙판 기능 추가 (i키를 누를 시)
-	case GLFW_KEY_I:
-		Arbiter::flag2 = !Arbiter::flag2;
+	case GLFW_KEY_M:		//모터 작동용
+		moterOper =!moterOper;
+		Moter(moterOper);
 		break;
 	}
 }
@@ -686,30 +708,16 @@ int main(int, char**)
 
 		sprintf(buffer, "(W)arm Starting %s", World::warmStarting ? "ON" : "OFF");
 		DrawText(5, 125, buffer);
-		
-		// 일시정지 문구 추가
-		sprintf(buffer, "(S)top %s", flag ? "ON" : "OFF");
-		DrawText(5, 155, buffer);
 
-		// 빙판 문구 추가
-		sprintf(buffer, "(I)ce plane %s", Arbiter::flag2 ? "ON" : "OFF");
-		DrawText(5, 185, buffer);
+		//모터 작동 문구, 3번째 파라미터는 World에 생성해야 함.
+		sprintf(buffer, "(M)oter %s", World::Moter ? "ON" : "OFF");
+		DrawText(5, 155, buffer);
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		
-		// flag에 따른 일시정지 여부
-		if (flag == true)
-		{
-			world.Step(0);
-		}
-		else
-		{
-			world.Step(timeStep);
-		}
+		world.Step(timeStep);
 
-		
 		for (int i = 0; i < numBodies; ++i)
 			DrawBody(bodies + i);
 
