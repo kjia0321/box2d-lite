@@ -32,8 +32,10 @@ namespace
 	Joint joints[100];
 	
 	Body* bomb = NULL;
+	Body* moter = NULL;			//모터 Body
+	static bool moterOper = false;		//모터 회전관련 bool
 
-	float timeStep = 1.0f / 60.0f;
+	float timeStep = 1.0f / 120.0f;
 	int iterations = 10;
 	Vec2 gravity(0.0f, -10.0f);
 
@@ -124,10 +126,38 @@ static void LaunchBomb()
 		++numBodies;
 	}
 
-	bomb->position.Set(Random(-15.0f, 15.0f), 15.0f);
+	bomb->position.Set(Random(-15.0f, 15.0f), 10.0f);
 	bomb->rotation = Random(-1.5f, 1.5f);
 	bomb->velocity = -1.5f * bomb->position;
 	bomb->angularVelocity = Random(-20.0f, 20.0f);
+}
+
+//모터 생성 LaunchBomb()의 형식을 가져옴.
+//입력 파라미터는 회전을 시킬지 말지를 결정하게 함.
+static void const Moter(bool oper)
+{
+	if (!moter)
+	{
+		moter = bodies + numBodies;
+		moter->Set(Vec2(1.0f, 1.0f), FLT_MAX);
+		moter->friction = 100.0f;
+		world.Add(moter);
+		++numBodies;
+	}
+	moter->position.Set((1.0f, 1.0f), 3.0f);
+
+	if (oper == false)
+	{
+		moter->angularVelocity = 0.0f;
+		World::Moter = false;
+	}
+	else
+	{
+		moter->angularVelocity = 100.0f;
+		World::Moter = true;
+	}
+
+	float rotation = (moter->mass * moter->angularVelocity) * (1/timeStep);
 }
 
 // Single box
@@ -426,7 +456,7 @@ static void Demo8(Body* b, Joint* j)
 
 	j->Set(b1, b5, Vec2(6.0f, 2.6f));
 	world.Add(j);
-	++j; ++numJoints;
+	++j; ++numJoints; 
 
 	Body* b6 = b;
 	b->Set(Vec2(2.0f, 0.2f), 10.0f);
@@ -513,6 +543,7 @@ static void InitDemo(int index)
 	numBodies = 0;
 	numJoints = 0;
 	bomb = NULL;
+	moter = NULL;		//Demo 변경 시 같이 초기화
 
 	demoIndex = index;
 	demos[index](bodies, joints);
@@ -558,6 +589,11 @@ static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int 
 
 	case GLFW_KEY_SPACE:
 		LaunchBomb();
+		break;
+
+	case GLFW_KEY_M:	//모터 작동용
+		moterOper =!moterOper;
+		Moter(moterOper);
 		break;
 	}
 }
@@ -672,6 +708,10 @@ int main(int, char**)
 
 		sprintf(buffer, "(W)arm Starting %s", World::warmStarting ? "ON" : "OFF");
 		DrawText(5, 125, buffer);
+
+		//모터 작동 문구, 3번째 파라미터는 World에 생성해야 함.
+		sprintf(buffer, "(M)oter %s", World::Moter ? "ON" : "OFF");
+		DrawText(5, 155, buffer);
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
