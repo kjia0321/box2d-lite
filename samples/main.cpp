@@ -32,10 +32,10 @@ namespace
 	Joint joints[100];
 	
 	Body* bomb = NULL;
-	Body* moter = NULL;			//모터 Body
-	static bool moterOper = false;		//모터 회전관련 bool
+	Body* moter = NULL;				//모터 Body
+	static bool moterOper = false;	//모터 회전관련 bool
 
-	float timeStep = 1.0f / 120.0f;
+	float timeStep = 1.0f / 60.0f;
 	int iterations = 10;
 	Vec2 gravity(0.0f, -10.0f);
 
@@ -126,7 +126,7 @@ static void LaunchBomb()
 		++numBodies;
 	}
 
-	bomb->position.Set(Random(-15.0f, 15.0f), 10.0f);
+	bomb->position.Set(Random(-15.0f, 15.0f), 15.0f);
 	bomb->rotation = Random(-1.5f, 1.5f);
 	bomb->velocity = -1.5f * bomb->position;
 	bomb->angularVelocity = Random(-20.0f, 20.0f);
@@ -591,7 +591,7 @@ static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int 
 		LaunchBomb();
 		break;
 
-	case GLFW_KEY_M:	//모터 작동용
+	case GLFW_KEY_M:		//모터 작동용
 		moterOper =!moterOper;
 		Moter(moterOper);
 		break;
