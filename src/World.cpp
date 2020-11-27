@@ -94,11 +94,9 @@ void World::Step(float dt)
 		if (b->invMass == 0.0f)
 			continue;
 
-		if (b->force.x <= 100.0f && b->force.y <= 100.0f)
-		{
-			b->velocity += dt * (gravity + b->invMass * b->force);
-			b->angularVelocity += dt * b->invI * b->torque;
-		}
+		b->velocity += dt * (gravity + b->invMass * b->force);
+		b->angularVelocity += dt * b->invI * b->torque;
+
 	}
 
 	// Perform pre-steps.
