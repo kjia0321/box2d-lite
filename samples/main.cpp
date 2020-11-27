@@ -456,7 +456,7 @@ static void Demo8(Body* b, Joint* j)
 
 	j->Set(b1, b5, Vec2(6.0f, 2.6f));
 	world.Add(j);
-	++j; ++numJoints; 
+	++j; ++numJoints;
 
 	Body* b6 = b;
 	b->Set(Vec2(2.0f, 0.2f), 10.0f);
